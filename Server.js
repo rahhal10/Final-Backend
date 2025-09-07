@@ -15,6 +15,7 @@ app.use(morgan('dev'));
 
 
 app.use('/api/users', UserRoutes);
+app.use('/api/admin', AdminRoutes);
 
 
 pgClient.connect().then(() => {
