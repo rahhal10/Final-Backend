@@ -1,11 +1,12 @@
 {
   "name": "final-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is the **backend** for a course enrollment web app. It provides APIs for user authentication, course management, enrollment, and admin operations.",
   "main": "Server.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +25,8 @@
     "express": "^5.1.0",
     "morgan": "^1.10.1",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.11"
   }
 }

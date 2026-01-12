@@ -227,6 +227,264 @@ Delete a user by ID.
 
 ---
 
+## 🤖 AI Chatbot Features
+
+The backend includes an AI-powered chatbot with advanced prompt engineering, agent capabilities, and comprehensive logging.
+
+### Architecture Overview
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  React Frontend │────▶│  Node.js API    │────▶│  Flask AI Server│
+│  (Port 5173)    │     │  (Port 5000)    │     │  (Port 5001)    │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+                               │                        │
+                               ▼                        ▼
+                        ┌─────────────┐          ┌─────────────┐
+                        │ PostgreSQL  │          │ DeepSeek LLM│
+                        │  Database   │          │    API      │
+                        └─────────────┘          └─────────────┘
+```
+
+### AI Endpoint
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/users/ai-chat` | Send message to AI chatbot |
+
+#### 🔸 POST `/api/users/ai-chat`
+
+**Request Body:**
+```json
+{
+  "message": "What Python courses do you have?",
+  "email": "user@example.com",
+  "username": "user1",
+  "context": [
+    {"role": "user", "text": "Previous message"},
+    {"role": "assistant", "text": "Previous response"}
+  ],
+  "prompt_type": "improved"
+}
+```
+
+**Response:**
+```json
+{
+  "reply": "AI response with markdown formatting...",
+  "actions": [
+    {
+      "type": "ADD_TO_CART",
+      "course_title": "Python for Beginners",
+      "executed": true
+    }
+  ]
+}
+```
+
+**Parameters:**
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message` | string | Yes | User's question or command |
+| `email` | string | No | User's email for personalization |
+| `username` | string | No | User's username |
+| `context` | array | No | Previous conversation history |
+| `prompt_type` | string | No | "naive" or "improved" (default: "improved") |
+
+---
+
+### Prompt Engineering Patterns
+
+The AI uses multiple prompt engineering techniques in the Improved prompt:
+
+#### Basic Patterns
+
+| Pattern | Location in Prompt | Description |
+|---------|-------------------|-------------|
+| **Role-Based** | `=== ROLE-BASED PATTERN ===` | Defines AI as "LearnHub AI, an advanced assistant" |
+| **Instructional** | `=== INSTRUCTIONAL PATTERN ===` | 5 clear rules for behavior |
+| **Constraint** | Rules 1-3 | "MUST only use course titles from JSON" |
+| **Structured Output** | Examples 1-3 | Markdown tables for comparisons/paths |
+| **Persona Details** | `=== PERSONA DETAILS PATTERN ===` | Personality traits, communication style |
+| **Error Handling** | `=== ERROR HANDLING PATTERN ===` | 4 graceful fallback scenarios |
+
+#### Advanced Techniques
+
+| Technique | Location in Prompt | Description |
+|-----------|-------------------|-------------|
+| **Few-Shot Prompting** | Examples 1, 2, 3 | Complete input/output examples |
+| **Chain-of-Thought (CoT)** | `=== CHAIN-OF-THOUGHT PATTERN ===` | 4-step reasoning: UNDERSTAND → ANALYZE → REASON → RESPOND |
+
+---
+
+### Naive vs Improved Prompts
+
+Toggle between prompt modes to demonstrate prompt engineering effectiveness:
+
+#### Naive Prompt (2 lines)
+```
+You are a basic assistant.
+Rules:
+- Give very short answers (2-3 sentences maximum)
+- Do NOT use markdown, tables, bullet points, or any formatting
+- Do NOT use emojis
+- Do NOT give recommendations or suggestions
+- Do NOT explain your reasoning
+- Just answer the question directly in plain text
+```
+
+#### Improved Prompt (~250 lines)
+Contains all 8 patterns/techniques listed above plus:
+- 3 few-shot examples with complete responses
+- Ethical safeguards section
+- Agent action definitions with trigger phrases
+
+#### Context Strategy Difference
+
+| Aspect | Naive | Improved |
+|--------|-------|----------|
+| **System Prompt** | 2 lines | ~250 lines |
+| **Data Sent** | Course titles only (plain text) | Full JSON with all details |
+| **User Context** | No cart, no enrolled courses | Cart, enrolled courses, tasks |
+| **Output Format** | Plain text only | Markdown tables, emojis, structure |
+
+---
+
+### Agent Capabilities (4 Actions)
+
+The AI can perform intelligent actions on behalf of the user:
+
+#### 1. ADD_TO_CART
+**Trigger Phrases:**
+- "add [course] to cart"
+- "add [course] to my cart"
+- "I want to buy [course]"
+- "enroll me in [course]"
+- "purchase [course]"
+
+**Action Format in Response:**
+```
+ACTIONS:
+[ACTION:ADD_TO_CART]
+COURSE_TITLE: Python for Beginners
+[/ACTION:ADD_TO_CART]
+```
+
+#### 2. RECOMMEND_COURSES
+**Trigger Phrases:**
+- "recommend courses"
+- "what should I learn"
+- "suggest courses"
+- "what courses are good for me"
+
+**Output:** Personalized recommendations based on user's enrolled courses
+
+#### 3. CREATE_LEARNING_PATH
+**Trigger Phrases:**
+- "create a learning path for [career goal]"
+- "how do I become a [role]"
+- "plan my learning for [skill]"
+
+**Output:** Multi-phase markdown table with courses, duration, price, summary
+
+#### 4. COMPARE_COURSES
+**Trigger Phrases:**
+- "compare [course1] and [course2]"
+- "difference between [course1] and [course2]"
+- "which is better: [course1] or [course2]"
+
+**Output:** Side-by-side comparison table with all course attributes
+
+---
+
+### Ethical Safeguards
+
+Built-in ethical guidelines in the Improved prompt:
+
+| Safeguard | Description |
+|-----------|-------------|
+| **Honesty & Transparency** | Never make false claims; admit when unsure |
+| **User Privacy & Safety** | Never ask for passwords, payment details, SSN |
+| **Harmful Content Prevention** | Refuse illegal/harmful requests politely |
+| **Fair & Unbiased Recommendations** | Recommend based on user needs, not hidden agendas |
+| **Respect & Inclusivity** | Treat all users with respect; use inclusive language |
+
+---
+
+### Conversation Logging
+
+All conversations are logged to `Python-app/conversation_logs/chat_logs.jsonl`
+
+**Log Entry Format:**
+```json
+{
+  "timestamp": "2026-01-11T18:30:00.000000",
+  "conversation_id": "abc123-def456",
+  "user_email": "user@example.com",
+  "user_name": "user1",
+  "user_message": "What Python courses do you have?",
+  "assistant_response": "Here are the Python courses...",
+  "agent_actions": [
+    {"type": "RECOMMEND_COURSES", "executed": true}
+  ],
+  "model": "deepseek-chat",
+  "tokens_used": null,
+  "status": "success",
+  "error": null
+}
+```
+
+**Log Analysis Scripts:**
+- `analyze_logs.py` - Generate statistics from logs
+- `view_logs.py` - Pretty-print recent conversations
+
+---
+
+### Flask AI Server
+
+**Location:** `Python-app/app.py`
+
+**Start Server:**
+```bash
+cd Python-app
+python app.py
+```
+
+**Server Details:**
+- **Port:** 5001
+- **Endpoints:** `/chat` (POST), `/health` (GET)
+- **LLM:** DeepSeek Chat API
+- **Environment Variables:** `DEEPSEEK_API_KEY` in `.env`
+
+**Key Functions:**
+
+| Function | Description |
+|----------|-------------|
+| `build_messages()` | Constructs message array for LLM with prompt selection |
+| `call_llm()` | Sends request to DeepSeek API |
+| `parse_actions()` | Extracts agent actions from LLM response |
+| `log_conversation()` | Writes to JSONL log file |
+| `recommend_courses()` | Course recommendation engine |
+| `create_learning_path()` | Learning path generator |
+| `compare_courses()` | Course comparison engine |
+
+---
+
+### Environment Variables
+
+**Python-app/.env:**
+```
+DEEPSEEK_API_KEY=your_api_key_here
+```
+
+**Root .env:**
+```
+FLASK_URL=http://localhost:5001/chat
+```
+
+---
+
 ## 📝 Notes
 - All endpoints return errors in the format: `{ "error": "message" }` on failure.
 - All endpoints require the appropriate fields as shown above.

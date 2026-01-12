@@ -1,0 +1,12 @@
+=== Agent Action Statistics ===
+
+Total Conversations: 24
+Conversations with Actions: 7
+Action Success Rate: 100.0%
+Total Actions: 8
+
+=== Action Types ===
+ADD_TO_CART: 2
+RECOMMEND_COURSES: 1
+CREATE_LEARNING_PATH: 4
+COMPARE_COURSES: 1

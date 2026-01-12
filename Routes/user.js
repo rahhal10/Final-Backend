@@ -84,14 +84,10 @@ UserRoutes.post('/addCart', async (req, res) => {
         const result = await pgClient.query(query, values);
         return res.status(201).json({ product: result.rows[0] });
     } catch (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Server error.' });
+        console.error('Error adding to cart:', err);
+        return res.status(500).json({ error: 'Server error.', details: err.message });
     }
 });
-
-
-
-
 
 
     
@@ -109,10 +105,6 @@ UserRoutes.post('/addCart', async (req, res) => {
             return res.status(500).json({ error: 'Server error.' });
         }
     });
-
-
-
-
 
 
 
@@ -231,6 +223,95 @@ UserRoutes.post('/signup', async (req, res) => {
         return res.status(500).json({ error: 'Server error.' });
     }
 });
+
+UserRoutes.post("/ai-chat", async (req, res) => {
+  try {
+    const { message, email, username, context, prompt_type } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
+
+    const coursesQuery = pgClient.query(
+      `SELECT id, title, description, instructor, price, category, duration, lessons_count, rating, image_url
+       FROM courses
+       ORDER BY rating DESC
+       LIMIT 50`
+    );
+
+    const tasksQuery = pgClient.query(
+      `SELECT id, title, category, priority, "dueDate"
+       FROM tasks
+       LIMIT 50`
+    );
+
+    let userCourseQuery = Promise.resolve({ rows: [] });
+    let cartProductsQuery = Promise.resolve({ rows: [] });
+
+    if (email || username) {
+      userCourseQuery = pgClient.query(
+        `SELECT id, title, description, instructor, price, category, duration, lessons_count, rating, image_url, email, username
+         FROM user_course
+         WHERE (email = $1 OR username = $2)
+         LIMIT 10`,
+        [email || "", username || ""]
+      );
+
+      cartProductsQuery = pgClient.query(
+        `SELECT id, title, instructor, price, category, duration, lessons_count, rating, image_url, quantity, description, email, username
+         FROM cart_products
+         WHERE (email = $1 OR username = $2)
+         LIMIT 10`,
+        [email || "", username || ""]
+      );
+    }
+
+    const [coursesR, tasksR, userCoursesR, cartProductsR] = await Promise.all([
+      coursesQuery,
+      tasksQuery,
+      userCourseQuery,
+      cartProductsQuery,
+    ]);
+
+    const dbData = {
+      courses: coursesR.rows,
+      tasks: tasksR.rows,
+      user_course: userCoursesR.rows,
+      cart_products: cartProductsR.rows,
+    };
+
+    const flaskUrl = process.env.FLASK_URL;
+    if (!flaskUrl) {
+      return res.status(500).json({ error: "FLASK_URL is not set in .env" });
+    }
+
+    const flaskRes = await fetch(flaskUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userInput: message,
+        userEmail: email || "",
+        userName: username || "",
+        context,
+        promptType: prompt_type || "improved",
+        dbData,
+      }),
+    });
+
+    if (!flaskRes.ok) {
+      const text = await flaskRes.text();
+      return res.status(500).json({ error: "Flask error", details: text });
+    }
+
+    const flaskData = await flaskRes.json();
+    return res.json({ reply: flaskData.reply, actions: flaskData.actions || [] });
+    
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
 
 
 

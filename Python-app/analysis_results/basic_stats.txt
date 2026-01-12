@@ -1,0 +1,9 @@
+=== Chatbot Analysis Statistics ===
+
+Total Conversations: 24
+Unique Users: 1
+Success Rate: 100.0%
+Agent Actions Triggered: 7
+Avg Prompt Length: 31.3 chars
+Avg Response Length: 1181.8 chars
+Date Range: 2026-01-11 to 2026-01-11
